@@ -12,7 +12,7 @@ def read_sequences(filepath):
         lines = file.read().strip().split("\n")
         if len(lines) != 2:
             raise ValueError("File must contain exactly two lines for two DNA sequences.")
-        return lines[0], lines[1]  # Returns as (sequence1, sequence2)
+        return (lines[0], lines[1])  # Returns as (sequence1, sequence2)
 
 def global_alignment(seq1: str, seq2: str, match_reward: int, mismatch_penalty: int, gap_opening: int, gap_extension: int):
     """
