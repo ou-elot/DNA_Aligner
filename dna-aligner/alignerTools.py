@@ -15,10 +15,10 @@ def read_sequences(filepath):
         return lines[0], lines[1]  # Returns as (sequence1, sequence2)
 
 def global_alignment(seq1: str, seq2: str, match_reward: int, mismatch_penalty: int, gap_opening: int, gap_extension: int):
-  """
-  Compute the affine alignment of two strings based on match reward, mismatch penalty, 
-  gap opening penalty, and gap extension penalty.
-  """
+    """
+    Compute the affine alignment of two strings based on match reward, mismatch penalty, 
+    gap opening penalty, and gap extension penalty.
+    """
     lower = []
     middle = []
     upper = []
@@ -109,4 +109,75 @@ def global_alignment(seq1: str, seq2: str, match_reward: int, mismatch_penalty: 
     for y in reversed(range(len(tAlign))):
         alignment2 = alignment2 + align2[y]
     return (alignScore,sFinal,tFinal)
+
+def local_alignment(seq1: str, seq2: str, match_reward: int, mismatch_penalty: int, indel_penalty: int):
+    """
+    Compute the local alignment of two strings based on match reward, mismatch penalty, and indel penalty.
+    """
+    s = seq1
+    t = seq2
+    movements = [] # 1 for down, 2 for lateral, 3 for diagonal
+    alignments = []
+    for i in range (len(s)+1):
+        alignments.append([])
+        movements.append([])
+        for j in range (len(t)+1):
+            alignments[i].append(0)
+            movements[i].append(0)
+    alignments[0][0] = 0 # two empty characters
+    for i in range (1,len(alignments[0])):
+        alignments[0][i] = 0
+        movements[0][i] = 0
+    for j in range (1, len(alignments)):
+        alignments[j][0] = 0
+        movements[j][0] = 0
+    for i in range (1, len(s)+1):
+        for j in range (1, len(t)+1):
+            if s[i-1] == t[j-1]:
+                match = alignments[i-1][j-1] + match_reward
+            else:
+                match = alignments[i-1][j-1] - mismatch_penalty
+            score1 = alignments[i-1][j] - indel_penalty
+            score2 = alignments[i][j-1] - indel_penalty
+            alignments[i][j] = max(0, score1, score2, match)
+            if max(0,score1,score2,match) == score1:
+                movements[i][j] = 1
+            elif max(0,score1,score2,match) == score2:
+                movements[i][j] = 2
+            elif max(0,score1,score2,match) == match:
+                movements[i][j] = 3
+            elif max(0,score1,score2,match) == 0:
+                movements[i][j] = 4
+
+    maxScore = float("-inf")
+    iMax = -1
+    jMax = -1
+    for x in range(len(alignments)):
+        for y in range(len(alignments[x])):
+            if alignments[x][y]>maxScore:
+                maxScore = alignments[x][y]
+                iMax = x
+                jMax = y
+    i = iMax
+    j = jMax
+    sFinal = ""
+    tFinal = ""
+    while movements[i][j] !=0 and movements[i][j] !=4:
+        if movements[i][j] == 1:
+            sFinal = s[i-1] + sFinal 
+            tFinal = "-" + tFinal  
+            i = i-1
+        elif movements[i][j] == 2:
+            sFinal = "-" + sFinal  
+            tFinal = t[j-1] + tFinal
+            j = j-1
+        elif movements[i][j] == 3:
+            sFinal = s[i-1] + sFinal 
+            tFinal = t[j-1] + tFinal
+            i = i-1
+            j=j-1
+        
+    return (maxScore, sFinal, tFinal)
+
+
     
